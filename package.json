@@ -1,0 +1,13 @@
+{
+  "name": "coding-dojo-reactive-prog",
+  "version": "0.0.0",
+  "license": "MIT",
+  "angular-cli": {},
+  "private": true,
+  "dependencies": {
+    "rxjs": "^5.1.0"
+  },
+  "devDependencies": {
+
+  }
+}
