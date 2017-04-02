@@ -4,29 +4,32 @@
 
 const Observable = Rx.Observable;
 
-const myObservable1 = new Observable(observer => {
+const myInput = document.getElementById('myInput');
+const myResults = document.getElementById('results');
 
-    observer.next(20);
-    observer.next(40);
-    observer.next(60);
-    observer.next(80);
-    observer.next(100);
-    observer.complete();
+const http$ = function(input){
+    const url = `https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22${input}%2C%20fr%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys;`;
+    return new Observable(observable => {
+        const xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function(){
+            if(xhr.readyState === 4 && xhr.status === 200){
+                observable.next(JSON.parse(xhr.responseText));
+            }
+        };
+        xhr.open('GET', url, true);
+        xhr.send();
+    });
+};
 
-});
+const inputs$ = Observable.fromEvent(myInput, 'keyup')
+    .map(ev => ev.target.value)
+    //.flatMap(input => http$(input)) switchMap is like a flatMap Latest (remove older requests responses)
+    .switchMap(input => http$(input))
+    .map(response => response.query.results)
+    .map(item => JSON.stringify(item, null, 2));
 
-const myObservable2 = new Observable(observer => {
-
-    observer.next(1);
-    observer.next(1);
-    observer.complete();
-
-});
-
-const myMergedObservable = Observable.merge(myObservable1, myObservable2).filter(x => x > 50);
-
-myMergedObservable.subscribe(
-    item => console.info(item),
+inputs$.subscribe(
+    item => myResults.innerHTML = item,
     error => console.error(error),
     () => console.log('This is the end')
 );
